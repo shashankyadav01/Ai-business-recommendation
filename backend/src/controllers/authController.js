@@ -78,6 +78,7 @@ export const verifyOTP = async (req, res) => {
       message: "Login successful",
       token,
       phone: user.phone,
+      user: user,
     });
 
   } catch (error) {
@@ -88,6 +89,39 @@ export const verifyOTP = async (req, res) => {
     console.log("Message:", error.message);
     console.log("================================");
 
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { phone } = req.user;
+    const profileData = req.body;
+
+    const user = await User.findOneAndUpdate(
+      { phone },
+      profileData,
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user,
+    });
+
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({
       success: false,
       message: error.message,

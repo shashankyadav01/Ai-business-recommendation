@@ -317,6 +317,19 @@ function ChatPage() {
 
 function CompanyCard({ company, index }) {
     const [hovered, setHovered] = useState(false);
+    
+    const handleWhatsAppClick = (phone) => {
+        // Remove any non-digit characters
+        const cleanPhone = phone.replace(/\D/g, '');
+        // Format: https://wa.me/phonenumber
+        window.open(`https://wa.me/${cleanPhone}`, '_blank');
+    };
+    
+    const handleEmailClick = (email) => {
+        // Format: mailto:email
+        window.open(`mailto:${email}`, '_blank');
+    };
+    
     return (
         <div
             style={{
@@ -353,15 +366,21 @@ function CompanyCard({ company, index }) {
 
             <div style={styles.cardFooter}>
                 {company.email && (
-                    <div style={styles.contactRow}>
-                        <Mail size={13} color="#60a5fa" />
-                        <span style={styles.contactText}>{company.email}</span>
+                    <div 
+                        style={styles.contactRow}
+                        onClick={() => handleEmailClick(company.email)}
+                    >
+                        <Mail size={13} color="#60a5fa" style={{ cursor: 'pointer' }} />
+                        <span style={{ ...styles.contactText, cursor: 'pointer', color: '#60a5fa', textDecoration: 'underline' }}>{company.email}</span>
                     </div>
                 )}
                 {company.phone && (
-                    <div style={styles.contactRow}>
-                        <Phone size={13} color="#22c55e" />
-                        <span style={styles.contactText}>{company.phone}</span>
+                    <div 
+                        style={styles.contactRow}
+                        onClick={() => handleWhatsAppClick(company.phone)}
+                    >
+                        <Phone size={13} color="#22c55e" style={{ cursor: 'pointer' }} />
+                        <span style={{ ...styles.contactText, cursor: 'pointer', color: '#22c55e', textDecoration: 'underline' }}>{company.phone}</span>
                     </div>
                 )}
             </div>

@@ -47,6 +47,7 @@ function Login({ onLogin }) {
       setLoading(true);
       const res = await verifyOTP(phone, otp);
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("phone", phone);
       if (onLogin) onLogin();
     } catch (err) {
       alert(err?.response?.data?.message || "Invalid OTP");

@@ -20,4 +20,8 @@ export const sendMessage = async (message) => {
   });
 };
 
+export const updateUserProfile = async (profileData) => {
+  return API.put("/auth/profile", profileData);
+};
+
 export default API;
