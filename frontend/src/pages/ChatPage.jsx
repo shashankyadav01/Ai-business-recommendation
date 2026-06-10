@@ -11,7 +11,11 @@ import {
 } from "lucide-react";
 import { sendMessage } from "../services/api";
 
-function ChatPage() {
+function ChatPage({
+    onCompanyClick,
+}) {
+    const [selectedCompany, setSelectedCompany] = useState(null);
+    const [recommendations, setRecommendations] = useState([]);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
@@ -234,9 +238,21 @@ function ChatPage() {
                                                 Here are <strong style={{ color: "#f59e0b" }}>{msg.companies.length} companies</strong> matched to your requirement:
                                             </p>
                                             <div style={styles.cardsGrid}>
-                                                {msg.companies.map((company, i) => (
-                                                    <CompanyCard key={i} company={company} index={i} />
-                                                ))}
+                                                {msg.companies.map(
+                                                    (company, i) => (
+                                                        <CompanyCard
+                                                            key={i}
+                                                            company={company}
+                                                            index={i}
+                                                            recommendations={
+                                                                msg.companies
+                                                            }
+                                                            onCompanyClick={
+                                                                onCompanyClick
+                                                            }
+                                                        />
+                                                    )
+                                                )}
                                             </div>
                                         </>
                                     )}
@@ -315,50 +331,104 @@ function ChatPage() {
     );
 }
 
-function CompanyCard({ company, index }) {
+function CompanyCard({
+    company,
+    index,
+    recommendations,
+    onCompanyClick,
+}) {
     const [hovered, setHovered] = useState(false);
-    
+
     const handleWhatsAppClick = (phone) => {
-        // Remove any non-digit characters
-        const cleanPhone = phone.replace(/\D/g, '');
-        // Format: https://wa.me/phonenumber
-        window.open(`https://wa.me/${cleanPhone}`, '_blank');
+        const cleanPhone = phone.replace(/\D/g, "");
+
+        window.open(
+            `https://wa.me/${cleanPhone}`,
+            "_blank"
+        );
     };
-    
+
     const handleEmailClick = (email) => {
-        // Format: mailto:email
-        window.open(`mailto:${email}`, '_blank');
+        window.open(
+            `mailto:${email}`,
+            "_blank"
+        );
     };
-    
+
     return (
         <div
             style={{
                 ...styles.card,
-                borderColor: hovered ? "rgba(245,158,11,0.3)" : "rgba(255,255,255,0.08)",
-                transform: hovered ? "translateY(-2px)" : "translateY(0)",
+                cursor: "pointer",
+                borderColor: hovered
+                    ? "rgba(245,158,11,0.3)"
+                    : "rgba(255,255,255,0.08)",
+                transform: hovered
+                    ? "translateY(-2px)"
+                    : "translateY(0)",
                 animation: `fadeUp 0.4s ease ${index * 80}ms both`,
+            }}
+            onClick={() => {
+                console.log("========== CARD CLICKED ==========");
+                console.log("Company:", company);
+                console.log("Recommendations:", recommendations);
+                console.log("onCompanyClick:", onCompanyClick);
+
+                if (!onCompanyClick) {
+                    console.error("onCompanyClick is undefined");
+                    return;
+                }
+
+                onCompanyClick(company, recommendations);
             }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
             <div style={styles.cardHeader}>
                 <div style={styles.cardIcon}>
-                    <Building2 size={18} color="#f59e0b" />
+                    <Building2
+                        size={18}
+                        color="#f59e0b"
+                    />
                 </div>
-                <h3 style={styles.cardName}>{company.name}</h3>
+
+                <h3 style={styles.cardName}>
+                    {company.name}
+                </h3>
             </div>
 
-            <p style={styles.cardDesc}>{company.description}</p>
+            <p style={styles.cardDesc}>
+                {company.description}
+            </p>
 
             {company.services?.length > 0 && (
                 <div style={styles.servicesWrap}>
                     <div style={styles.servicesLabel}>
-                        <Briefcase size={12} color="#22c55e" />
-                        <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Services</span>
+                        <Briefcase
+                            size={12}
+                            color="#22c55e"
+                        />
+
+                        <span
+                            style={{
+                                fontSize: "11px",
+                                color: "rgba(255,255,255,0.4)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                            }}
+                        >
+                            Services
+                        </span>
                     </div>
+
                     <div style={styles.tags}>
-                        {company.services.map((s, i) => (
-                            <span key={i} style={styles.tag}>{s}</span>
+                        {company.services.map((service, i) => (
+                            <span
+                                key={i}
+                                style={styles.tag}
+                            >
+                                {service}
+                            </span>
                         ))}
                     </div>
                 </div>
@@ -366,21 +436,60 @@ function CompanyCard({ company, index }) {
 
             <div style={styles.cardFooter}>
                 {company.email && (
-                    <div 
+                    <div
                         style={styles.contactRow}
-                        onClick={() => handleEmailClick(company.email)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleEmailClick(company.email);
+                        }}
                     >
-                        <Mail size={13} color="#60a5fa" style={{ cursor: 'pointer' }} />
-                        <span style={{ ...styles.contactText, cursor: 'pointer', color: '#60a5fa', textDecoration: 'underline' }}>{company.email}</span>
+                        <Mail
+                            size={13}
+                            color="#60a5fa"
+                            style={{
+                                cursor: "pointer",
+                            }}
+                        />
+
+                        <span
+                            style={{
+                                ...styles.contactText,
+                                cursor: "pointer",
+                                color: "#60a5fa",
+                                textDecoration: "underline",
+                            }}
+                        >
+                            {company.email}
+                        </span>
                     </div>
                 )}
+
                 {company.phone && (
-                    <div 
+                    <div
                         style={styles.contactRow}
-                        onClick={() => handleWhatsAppClick(company.phone)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleWhatsAppClick(company.phone);
+                        }}
                     >
-                        <Phone size={13} color="#22c55e" style={{ cursor: 'pointer' }} />
-                        <span style={{ ...styles.contactText, cursor: 'pointer', color: '#22c55e', textDecoration: 'underline' }}>{company.phone}</span>
+                        <Phone
+                            size={13}
+                            color="#22c55e"
+                            style={{
+                                cursor: "pointer",
+                            }}
+                        />
+
+                        <span
+                            style={{
+                                ...styles.contactText,
+                                cursor: "pointer",
+                                color: "#22c55e",
+                                textDecoration: "underline",
+                            }}
+                        >
+                            {company.phone}
+                        </span>
                     </div>
                 )}
             </div>

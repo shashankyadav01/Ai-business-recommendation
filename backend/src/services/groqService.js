@@ -39,7 +39,7 @@ const detectKeywords = (message) => {
     "jaipur", "lucknow", "chandigarh", "indore", "surat", "vadodara", "gurgaon", "noida",
     "goa", "kerala", "delhi ncr", "india", "across india", "online", "remote"
   ];
-  
+
   for (const location of locations) {
     if (message.toLowerCase().includes(location)) {
       detectedInfo.location = location;
@@ -125,11 +125,19 @@ export const getChatResponse = async (
         role: msg.role,
         content: msg.content,
       }));
+
+    const recentHistory =
+      safeHistory.slice(-5);
+
     const completion =
       await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-8b-instant",
         temperature: 0.3,
-        max_tokens: 800,
+        max_tokens: 100,
+
+        response_format: {
+          type: "json_object",
+        },
 
         messages: [
           {
@@ -264,7 +272,7 @@ EXAMPLE - NEVER DO THIS:
 `
           },
 
-          ...conversationHistory,
+          ...recentHistory,
 
           {
             role: "user",
@@ -280,13 +288,28 @@ EXAMPLE - NEVER DO THIS:
 
     // Clean response - remove markdown code blocks if present
     const cleanedContent = content
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
       .trim();
+
+    try {
+      return JSON.parse(cleanedContent);
+    } catch (error) {
+
+      console.log(
+        "JSON Parse Failed. Returning Question."
+      );
+
+      return {
+        type: "question",
+        question: cleanedContent,
+      };
+
+    }
 
     // Parse and return JSON
     const parsedResponse = JSON.parse(cleanedContent);
-    
+
     // Add detected keywords to response for frontend awareness
     parsedResponse.detectedKeywords = {
       industry: detectedKeywords.industry,
